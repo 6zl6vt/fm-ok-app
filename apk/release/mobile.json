@@ -1,5 +1,5 @@
 {
-  "code": 373,
-  "name": "3.7.3",
-  "desc": "* [App]\n* Optimize dlna ip get"
+  "code": 374,
+  "name": "3.7.4",
+  "desc": "* [App]\n* 9978 -> 8964\n* Support rtspt://\n* Support proxy://\n* Remove rtsp setting"
 }
