@@ -1,5 +1,5 @@
 {
-  "code": 376,
-  "name": "3.7.6",
-  "desc": "* [App]\n* Support 9978 too"
+  "code": 377,
+  "name": "3.7.7",
+  "desc": "* [App]\n* Fix http server"
 }
