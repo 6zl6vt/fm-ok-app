@@ -1,5 +1,5 @@
 {
-  "code": 388,
-  "name": "3.8.8",
-  "desc": "* [App]\n* Fix bug"
+  "code": 389,
+  "name": "3.8.9",
+  "desc": "* [App]\n* Fix track name\n* Add prefer aac setting"
 }
