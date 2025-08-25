@@ -1,5 +1,5 @@
 {
-  "code": 410,
-  "name": "4.1.0",
-  "desc": "* 修正崩潰問題"
+  "code": 411,
+  "name": "4.1.1",
+  "desc": "* proxy 支持 hosts"
 }
