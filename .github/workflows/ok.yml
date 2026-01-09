@@ -1,13 +1,12 @@
-name: 同步C仓库到B仓库
+name: 同步ok
 
 on:
   schedule:
-    # 每6小时同步一次，可根据需要调整
-    - cron: '0 */6 * * *'
+    - cron: '0 */4 * * *'
   workflow_dispatch:
     inputs:
       force_sync:
-        description: '强制同步（即使没有更新也推送）'
+        description: '强制同步'
         required: false
         default: 'false'
         type: choice
@@ -17,7 +16,7 @@ on:
 
 jobs:
   sync-from-c-to-b:
-    name: 从C仓库同步到B仓库
+    name: 同步ok
     runs-on: ubuntu-latest
     
     steps:
@@ -28,10 +27,9 @@ jobs:
         fetch-depth: 1
       continue-on-error: true
     
-    - name: 初始化仓库（如果okjack分支不存在）
+    - name: 初始化仓库
       if: steps.checkout.outcome == 'failure'
       run: |
-        echo "okjack分支不存在，正在创建..."
         git init
         git remote add origin https://github.com/${{ github.repository }}.git
         git config user.name "GitHub Actions Bot"
@@ -40,63 +38,29 @@ jobs:
     
     - name: 添加C仓库作为上游远程仓库
       run: |
-        # 移除可能已存在的同名远程仓库
         git remote remove upstream-c 2>/dev/null || true
-        # 添加C仓库作为上游
         git remote add upstream-c https://github.com/lystv/fmapp.git
-        # 拉取C仓库的ok分支
         git fetch upstream-c ok --depth=1
     
     - name: 检查是否有更新
       id: check_update
       run: |
-        # 检查当前分支是否存在提交
         if git rev-parse HEAD >/dev/null 2>&1; then
-          # 如果当前分支有提交，则比较差异
           if git diff --quiet HEAD upstream-c/ok 2>/dev/null; then
-            echo "没有发现更新"
             echo "has_update=false" >> $GITHUB_OUTPUT
           else
-            echo "发现更新"
             echo "has_update=true" >> $GITHUB_OUTPUT
           fi
         else
-          # 如果当前分支为空（新分支），则视为有更新
-          echo "新分支，需要初始化"
           echo "has_update=true" >> $GITHUB_OUTPUT
         fi
     
     - name: 重置到C仓库的ok分支
       if: steps.check_update.outputs.has_update == 'true' || github.event.inputs.force_sync == 'true'
       run: |
-        echo "正在同步C仓库的ok分支到本地okjack分支..."
-        # 重置本地分支到C仓库的ok分支
         git reset --hard upstream-c/ok
-        echo "同步完成！"
-        echo "最新提交信息："
-        git log -1 --oneline
-    
-    - name: 设置上游分支信息（可选）
-      if: steps.check_update.outputs.has_update == 'true' || github.event.inputs.force_sync == 'true'
-      run: |
-        # 设置上游分支跟踪C仓库的ok分支
-        git branch --set-upstream-to=upstream-c/ok okjack || true
-        echo "已设置上游分支为C仓库的ok分支"
     
     - name: 强制推送到B仓库的okjack分支
       if: steps.check_update.outputs.has_update == 'true' || github.event.inputs.force_sync == 'true'
       run: |
-        echo "正在推送到B仓库的okjack分支..."
         git push origin okjack --force
-        echo "推送完成！"
-    
-    - name: 记录同步时间
-      if: steps.check_update.outputs.has_update == 'true' || github.event.inputs.force_sync == 'true'
-      run: |
-        echo "同步完成时间：$(date)"
-        echo "源仓库：lystv/fmapp (ok分支)"
-        echo "目标仓库：${{ github.repository }} (okjack分支)"
-    
-    - name: 跳过推送（无更新且非强制同步）
-      if: steps.check_update.outputs.has_update == 'false' && github.event.inputs.force_sync == 'false'
-      run: echo "无更新且未启用强制同步，跳过推送操作"
