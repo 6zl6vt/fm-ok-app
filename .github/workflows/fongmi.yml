@@ -6,24 +6,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync:
+  sync-fongmi:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
     steps:
-      - name: Setup shallow clone
-        run: |
-          git init sync_repo
-          cd sync_repo
-          git remote add source https://github.com/FongMi/Release.git
-          git remote add target https://github.com/${{ github.repository }}.git
+    - name: Checkout current repo
+      uses: actions/checkout@v4
+      with:
+        ref: fongmi
 
-      - name: Fetch source branch
-        run: |
-          cd sync_repo
-          git fetch --depth 1 source fongmi
-
-      - name: Push to target branch
-        run: |
-          cd sync_repo
-          git push target source/fongmi:refs/heads/fongmi --force
+    - name: Add upstream remote
+      run: |
+        git remote add upstream https://github.com/FongMi/Release.git
+        git fetch upstream fongmi
+        
+    - name: Reset to upstream branch
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git reset --hard upstream/fongmi
+        
+    - name: Push to target repo
+      run: |
+        git push origin fongmi --force
