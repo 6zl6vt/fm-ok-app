@@ -11,26 +11,19 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout target repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: fongmi
-          fetch-depth: 0
-
-      - name: Add source repository as remote
+      - name: Setup shallow clone
         run: |
+          git init sync_repo
+          cd sync_repo
           git remote add source https://github.com/FongMi/Release.git
-          git fetch source fongmi
+          git remote add target https://github.com/${{ github.repository }}.git
 
-      - name: Merge source branch into target branch
+      - name: Fetch source branch
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout fongmi
-          git merge --allow-unrelated-histories --no-ff --no-edit source/fongmi || true
-          git merge --abort 2>/dev/null || true
-          git reset --hard source/fongmi
+          cd sync_repo
+          git fetch --depth 1 source fongmi
 
-      - name: Push changes
-        run: git push origin fongmi --force
+      - name: Push to target branch
+        run: |
+          cd sync_repo
+          git push target source/fongmi:refs/heads/fongmi --force
